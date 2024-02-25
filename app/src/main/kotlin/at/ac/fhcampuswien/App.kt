@@ -3,10 +3,23 @@
  */
 package at.ac.fhcampuswien
 
+import java.util.*
+
 class App {
     // Game logic for a number guessing game
+    private val scanner = Scanner(System.`in`)
+
     fun playNumberGame(digitsToGuess: Int = 4) {
         //TODO: build a menu which calls the functions and works with the return values
+        val generatedNumber = generateRandomNonRepeatingNumber(digitsToGuess)
+        var guess: Int
+        do {
+            println("Guess the $digitsToGuess-digit number: ")
+            guess = scanner.nextInt()
+            val result = checkUserInputAgainstGeneratedNumber(guess, generatedNumber)
+            println(result)
+        } while (result.toString() != "$digitsToGuess:$digitsToGuess")
+        println("Congratulations, you have guessed the number!")
     }
 
     /**
@@ -25,7 +38,9 @@ class App {
      */
     val generateRandomNonRepeatingNumber: (Int) -> Int = { length ->
         //TODO implement the function
-        0   // return value is a placeholder
+        if (length !in 1..9) throw IllegalArgumentException("Length must be between 1 and 9.")
+        val digits = (1..9).shuffled().take(length).joinToString("")
+        digits.toInt()
     }
 
     /**
@@ -45,10 +60,34 @@ class App {
      * @throws IllegalArgumentException if the inputs do not have the same number of digits.
      */
     val checkUserInputAgainstGeneratedNumber: (Int, Int) -> CompareResult = { input, generatedNumber ->
-        //TODO implement the function
-        CompareResult(0, 0)   // return value is a placeholder
+        val inputStr = input.toString()
+        val generatedStr = generatedNumber.toString()
+        if (inputStr.length != generatedStr.length) throw IllegalArgumentException("Input and generated number must have the same number of digits.")
+
+        var correctPositions = 0
+        var correctDigits = 0
+        val seenInGenerated = mutableSetOf<Char>()
+
+        for (i in inputStr.indices) {
+            if (inputStr[i] == generatedStr[i]) {
+                correctPositions++
+                correctDigits++
+                seenInGenerated.add(inputStr[i])
+            }
+        }
+
+        inputStr.filter { it !in seenInGenerated }.forEach { digit ->
+            if (digit in generatedStr && digit !in seenInGenerated) {
+                correctDigits++
+                seenInGenerated.add(digit)
+            }
+        }
+
+        CompareResult(correctDigits, correctPositions)
     }
 }
+
+
 
 fun main() {
     println("Hello World!")
